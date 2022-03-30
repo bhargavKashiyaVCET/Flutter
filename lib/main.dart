@@ -2,10 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:html';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:validate/validate.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,6 +18,11 @@ class MyApp extends StatelessWidget {
   }
 }
 
+class _LoginData {
+  String email = '';
+  String password = '';
+}
+
 class NewApp extends StatefulWidget {
   const NewApp({Key? key}) : super(key: key);
 
@@ -30,6 +33,35 @@ class NewApp extends StatefulWidget {
 class _NewAppState extends State<NewApp> {
   //form key
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  _LoginData data = new _LoginData();
+
+  String? validateEmail(String? email) {
+    try {
+      Validate.isEmail(email);
+    } catch (e) {
+      return "Please enter a valid Email";
+    }
+    return null;
+  }
+
+  String? validatePassword(String? password) {
+    if (password.toString().length < 8) {
+      return "Password length cannot be less than 8";
+    }
+
+    return null;
+  }
+
+  void submitForm() {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    } else {
+      _formKey.currentState?.save();
+      print("Logging Form Data");
+      print("Email is ${data.email}");
+      print("Password is ${data.password}");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,13 +76,17 @@ class _NewAppState extends State<NewApp> {
           key: _formKey,
           child: ListView(
             children: [
-              Image.asset("Images/forms.png"),
+              SizedBox(child: Image.asset("Images/forms.png"), height: 150.0),
               TextFormField(
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: "Enter Your Email Here",
                   hintText: "you@example.com",
                 ),
+                validator: validateEmail,
+                onSaved: (value) {
+                  data.email = value.toString();
+                },
               ),
               TextFormField(
                 obscureText: true,
@@ -58,11 +94,16 @@ class _NewAppState extends State<NewApp> {
                   labelText: "Enter Your Password Here",
                   hintText: "12345678",
                 ),
+                validator: validatePassword,
+                onSaved: (value) {
+                  data.password = value.toString();
+                },
               ),
-              SizedBox(
-                width: MediaQuery.of(context).size.width,
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 20.0),
+                width: 200.0,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: submitForm,
                   child: const Padding(
                     padding: EdgeInsets.all(10.0),
                     child: Text("Login"),
